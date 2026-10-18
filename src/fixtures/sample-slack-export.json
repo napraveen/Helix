@@ -1,0 +1,32 @@
+{
+  "_notice": "SAMPLE DATASET for testing and zero-credential reviewer evaluation.",
+  "channel": {
+    "id": "C0441WARROOM",
+    "name": "warroom-billing-freeze",
+    "topic": { "value": "INC-441 Emergency Investigation and Copperline Freeze" },
+    "purpose": { "value": "Coordinate architectural freeze of Copperline billing service" }
+  },
+  "messages": [
+    {
+      "type": "message",
+      "user": "U_OWEN_PARK",
+      "text": "P0 update: <@U_NORA_BERG> verified that billing-ledger has stalled for 187 minutes due to vendor API changes. We are invoking ADR-014.",
+      "ts": "1729000000.001000",
+      "reply_count": 2
+    },
+    {
+      "type": "message",
+      "user": "U_NORA_BERG",
+      "text": "Confirmed. Downstream payment-gateway has stopped receiving settlement receipts. Recommending immediate quarantine.",
+      "ts": "1729000120.002000",
+      "thread_ts": "1729000000.001000"
+    },
+    {
+      "type": "message",
+      "user": "U_JONAH_HALE",
+      "text": "Product approval granted. Freezing vendor integration and rolling back to ADR-003 fallback pipeline.",
+      "ts": "1729000240.003000",
+      "thread_ts": "1729000000.001000"
+    }
+  ]
+}

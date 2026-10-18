@@ -1,0 +1,42 @@
+{
+  "_notice": "SAMPLE DATASET for testing and zero-credential reviewer evaluation.",
+  "issues": [
+    {
+      "id": "ENG-441",
+      "title": "Emergency Rollback of Copperline Ingestion Webhook",
+      "description": "billing-ledger experienced silent event drops causing invoice blackout. Roll back vendor driver and reroute to event-stream-buffer.",
+      "state": "Done",
+      "priority": "P0",
+      "assignee": {
+        "name": "Nora Berg",
+        "email": "nora@forgeworks.dev"
+      },
+      "creator": {
+        "name": "Owen Park",
+        "email": "owen@forgeworks.dev"
+      },
+      "labels": ["incident", "billing", "p0-outage"],
+      "createdAt": "2026-10-15T19:20:00Z",
+      "updatedAt": "2026-10-15T22:30:00Z",
+      "estimatePoints": 8
+    },
+    {
+      "id": "SEC-882",
+      "title": "Mitigate CVE-2026-4410 on vision-pipeline Camera Driver",
+      "description": "Apply memory bounds check to camera ingestion frame unpacker and quarantine affected AGV subnet.",
+      "state": "In Progress",
+      "priority": "P0",
+      "assignee": {
+        "name": "Leo Kim",
+        "email": "leo@forgeworks.dev"
+      },
+      "creator": {
+        "name": "Quinn Brooks",
+        "email": "quinn@forgeworks.dev"
+      },
+      "labels": ["security", "cve", "perception"],
+      "createdAt": "2026-10-16T11:00:00Z",
+      "estimatePoints": 5
+    }
+  ]
+}
