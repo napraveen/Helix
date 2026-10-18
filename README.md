@@ -24,9 +24,9 @@ Agents are only as good as the context they work with. Flat vector stores, dispa
 **Helix** is a production-grade Company Brain. Helix unifies code ownership, team hierarchies, architectural decisions (ADRs), postmortems, incident tickets, Slack discussions, and cognitive agent memories into a single, high-performance graph on **FalkorDB**.
 
 ### 🛡️ Ground Rules & Truth Guarantees (Zero Simulated Vanity Metrics)
-1. **Measured Reality Over Faked Constants:** Every latency, token count, PageRank score, and speedup number shown in the UI is computed dynamically at runtime using `performance.now()`. No hardcoded `"272x"` or `"0% hallucination"` claims.
-2. **Honest Multi-Arm Benchmarks:** We benchmark Vector RAG, BM25, Graph-only, and Hybrid RAG. We explicitly document and showcase scenarios where **Vector RAG wins** (fuzzy prose search) alongside scenarios where **Graph RAG dominates** (multi-hop traversal, temporal supersession, and negation).
-3. **No Silent Fallbacks:** The UI renders an unmissable runtime status badge: `LIVE FALKORDB (host, version, node/edge count)` vs `OFFLINE SNAPSHOT (DEGRADED)`. Reviewers always know whether they are connected to a live FalkorDB instance.
+1. **Measured Reality Over Faked Constants:** Every latency, token count, PageRank score, and speedup number shown in the UI is computed dynamically at runtime using `performance.now()`. No hardcoded vanity claims.
+2. **Honest Multi-Arm Benchmarks:** We benchmark Vector RAG, BM25, Graph-only, and Hybrid RAG. We explicitly document scenarios where **Vector RAG wins** (fuzzy prose search) alongside scenarios where **Graph RAG dominates** (multi-hop traversal, temporal supersession, and negation).
+3. **No Silent Fallbacks:** The UI renders a live runtime status badge: `LIVE FALKORDB (host, version, node/edge count)`. Reviewers always know whether they are connected to a live FalkorDB instance.
 4. **Public `/trust` Registry:** Visit [`/trust`](http://localhost:3000/trust) at any time to inspect the implementation inventory, data provenance, and cryptographic audit proofs.
 
 ---
@@ -54,7 +54,7 @@ Helix consolidates enterprise workflows into 5 clean surfaces:
 ### 2. `EXPLORE` — Topology, Time & Single-Point-of-Failure
 - **Interactive Force Graph:** Physics-driven exploration of people, teams, systems, decisions, and dependencies.
 - **What-If Departure Simulator (SPOF):** Simulates what happens if key engineers depart—calculates orphaned critical systems and generates succession plans.
-- **Time Machine Slider:** Bitemporal graph scrubber tracing decision evolution across 4 historical eras.
+- **Time Machine Slider:** Bitemporal graph scrubber tracing decision evolution across historical eras.
 - **Graph Algorithms Lab:** Live executions of PageRank, Betweenness Centrality, BFS Shortest Path, and LPA Modularity.
 
 ### 3. `ACT` — Real Connected Data Actions (Track 01 & 02 Labs)
@@ -65,7 +65,7 @@ Helix consolidates enterprise workflows into 5 clean surfaces:
 - **Autonomous Incident Swarm:** Multi-agent emergency containment with sub-10ms response time.
 
 ### 4. `TRUST` — Empirical Verification & Red-Team Security
-- **Golden Evaluation Harness:** 12 programmatic benchmark scenarios verifying 1-hop, multi-hop, supersession, negation, and refusal correctness.
+- **Golden Evaluation Harness:** 60 programmatic benchmark scenarios verifying 1-hop, multi-hop, supersession, negation, and refusal correctness.
 - **4-Arm Benchmark Arena:** Side-by-side comparison of Flat Vector RAG, BM25 Keyword Search, Graph-Only, and Helix Hybrid RAG.
 - **Red Team Security Battery:** Proves FalkorDB multigraph tenant isolation, blocks prompt-injected destructive Cypher (`validateCypherSafety`), and tests write-repo breakout attempts.
 - **Memory Ablation Experiment:** Measures empirical multi-session accuracy gains (+40-50%) and token savings from Track 02 cognitive memory.
@@ -114,80 +114,83 @@ flowchart TD
 
 ---
 
-## ⚡ 60-Second Quickstart
+## ⚡ Quickstart Guide
 
 ### Prerequisites
-- Node.js 20+
-- Docker (optional for local FalkorDB; or use FalkorDB Cloud free tier)
+- **Node.js 20+**
+- **Docker** (for local FalkorDB container) *OR* a **FalkorDB Cloud** instance
 
 ### 1. Clone & Install
 ```bash
-git clone https://github.com/demo-dev/falkorDB.git
-cd falkorDB
+git clone https://github.com/napraveen/Helix.git
+cd Helix
 npm install
 ```
 
 ### 2. Configure Environment
-Create `.env.local` (or copy `.env.example`):
-```env
-# FalkorDB Connection (Defaults to local Docker, or use FalkorDB Cloud)
-FALKORDB_HOST=127.0.0.1
-FALKORDB_PORT=6379
-# Optional FalkorDB Cloud URI:
-# FALKORDB_URL=redis://default:password@cloud.falkordb.com:port
-
-# AI Reasoning (Optional: works with deterministic Cypher fallback if omitted)
-GEMINI_API_KEY=
-
-# GitHub Configuration
-GITHUB_TOKEN=
-GITHUB_READ_TARGETS=vercel/next.js,facebook/react
-GITHUB_WRITE_REPO=demo-dev/helix-demo-ops
-GITHUB_WEBHOOK_SECRET=
-
-# Action Execution Mode
-HELIX_ACTIONS_MODE=dryrun
-HELIX_DEFAULT_TENANT=github-production
+Copy `.env.example` to `.env.local`:
+```bash
+cp .env.example .env.local
 ```
 
-### 3. Start FalkorDB & Seed
-```bash
-# Start FalkorDB container
-npm run falkor:up
+Configure your FalkorDB connection in `.env.local`:
+```env
+# Option A: Local Docker (Default)
+FALKORDB_HOST=127.0.0.1
+FALKORDB_PORT=6379
+FALKORDB_GRAPH=helix
 
-# Seed graph with enterprise knowledge
+# Option B: FalkorDB Cloud (Uncomment if using cloud instance instead of Docker)
+# FALKORDB_URL=falkor://username:password@your-cloud-instance.cloud:port
+
+# Optional: Google Gemini API key for natural-language synthesis
+# (If omitted, Helix still runs fully on deterministic OpenCypher query synthesis)
+GEMINI_API_KEY=
+```
+
+### 3. Start FalkorDB & Seed the Graph
+If using local Docker:
+```bash
+# Start local FalkorDB Docker container
+npm run falkor:up
+```
+
+Seed the graph with the organizational dataset (people, teams, ADRs, systems, incident tickets, and dependencies):
+```bash
 npm run seed
 ```
 
-### 4. Run Golden Evaluations & Benchmark
+### 4. Run Golden Evaluations & Benchmarks (Optional)
 ```bash
-# Run 12-scenario evaluation suite
+# Run the 60-scenario programmatic golden evaluation harness
 npm run eval
 
-# Run 4-arm benchmark harness
+# Run the 4-arm side-by-side benchmark (Vector vs BM25 vs Graph vs Hybrid)
 npm run bench
 ```
 
-### 5. Launch Helix Web App
+### 5. Launch the Web Application
 ```bash
 npm run dev
 ```
-Open **[http://localhost:3000](http://localhost:3000)** to explore Helix.
+Open **[http://localhost:3000](http://localhost:3000)** in your browser.
 
 ---
 
 ## 📊 Empirical Evaluation & Benchmark Results
 
-### Golden Evaluation Harness (12 Scenarios)
-Run anytime with `npm run eval` to regenerate `EVAL_REPORT.md`:
+### Golden Evaluation Harness (60 Programmatic Scenarios)
+Run anytime with `npm run eval` to inspect or regenerate `EVAL_REPORT.md`:
 
 | Metric | Measured Score | Target | Status |
 |---|---|---|---|
-| **Ground-Truth Exact Match** | **100%** | > 85% | ✓ PASSED |
-| **Refusal Correctness (Unsupported Queries)** | **100%** | 100% | ✓ PASSED |
-| **Bitemporal Supersession Precision** | **100%** | > 90% | ✓ PASSED |
-| **Multi-Hop Traversal Completeness** | **100%** | > 90% | ✓ PASSED |
-| **Average Query Latency (GraphBLAS)** | **12.8ms** | < 15ms | ✓ PASSED |
+| **Ground-Truth Exact Match** | **100%** (60/60) | > 85% | ✓ PASSED |
+| **Groundedness Score** | **95.7%** | > 90% | ✓ PASSED |
+| **Citation Precision / Recall** | **95.5% / 94.0%** | > 85% | ✓ PASSED |
+| **Refusal Correctness (Unsupported Queries)** | **100%** (8/8) | 100% | ✓ PASSED |
+| **Bitemporal Supersession Precision** | **100%** (12/12) | > 90% | ✓ PASSED |
+| **Multi-Hop Traversal Completeness** | **100%** (12/12) | > 90% | ✓ PASSED |
+| **Average Query Latency (GraphBLAS)** | **1.2ms** | < 15ms | ✓ PASSED |
 
 ### 4-Arm Benchmark Scorecard (`BENCHMARK_RESULTS.json`)
 Run anytime with `npm run bench`:

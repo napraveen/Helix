@@ -60,10 +60,30 @@ export async function runCypher(
       };
     }
 
-    throw new FalkorDBConnectionError(
-      `FalkorDB is unreachable at 127.0.0.1:6379. The agent cannot reason without its live graph context layer. Please start FalkorDB: docker compose up -d (or docker run -p 6379:6379 falkordb/falkordb)`,
-      error
-    );
+    const errStr = String(error);
+    const isConnErr =
+      errStr.includes("ECONNREFUSED") ||
+      errStr.includes("ENOTFOUND") ||
+      errStr.includes("ETIMEDOUT") ||
+      errStr.includes("FalkorDB is unreachable") ||
+      errStr.includes("Socket closed") ||
+      errStr.includes("Connection reset") ||
+      errStr.includes("connectTimeout") ||
+      errStr.includes("Cached socket list() vitality test timeout") ||
+      errStr.includes("FalkorDB.connect() timeout") ||
+      errStr.includes("FalkorDBConnectionError");
+
+    if (isConnErr) {
+      const endpoint = process.env.FALKORDB_URL
+        ? "FalkorDB Cloud"
+        : `${process.env.FALKORDB_HOST ?? "127.0.0.1"}:${process.env.FALKORDB_PORT ?? 6379}`;
+      throw new FalkorDBConnectionError(
+        `FalkorDB is unreachable at ${endpoint}. The agent cannot reason without its live graph context layer. Please start or verify FalkorDB connection.`,
+        error
+      );
+    }
+
+    throw error;
   }
 }
 

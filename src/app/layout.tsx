@@ -24,6 +24,11 @@ export const metadata: Metadata = {
   title: "Helix — Company Brain",
   description:
     "A living company graph on FalkorDB. Who knows what, who owns what, and the path behind every answer.",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

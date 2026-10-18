@@ -251,10 +251,10 @@ export const CYPHER = {
     RETURN labels(n)[0] AS kind, coalesce(n.name, n.title, n.id) AS canonicalName, n.id AS id
     LIMIT 1
   `,
-  blastRadiusWithDepth: `
+   blastRadiusWithDepth: `
     MATCH (s:System)
     WHERE toLower(s.name) = toLower($name) OR toLower(s.id) = toLower($name)
-    OPTIONAL MATCH path = (upstream:System)-[:DEPENDS_ON*1..$depth]->(s)
+    OPTIONAL MATCH path = (upstream:System)-[:DEPENDS_ON*1..4]->(s)
     OPTIONAL MATCH (p:Person)-[:OWNS]->(s)
     OPTIONAL MATCH (pr:Project)-[:USES]->(s)
     RETURN s.name AS system,
@@ -277,3 +277,24 @@ export const CYPHER = {
     LIMIT 5
   `,
 } as const;
+
+export function blastRadiusWithDepthCypher(depth: number = 4): string {
+  const boundedDepth = Math.min(Math.max(Math.floor(depth) || 4, 1), 6);
+  return `
+    MATCH (s:System)
+    WHERE toLower(s.name) = toLower($name) OR toLower(s.id) = toLower($name)
+    OPTIONAL MATCH path = (upstream:System)-[:DEPENDS_ON*1..${boundedDepth}]->(s)
+    OPTIONAL MATCH (p:Person)-[:OWNS]->(s)
+    OPTIONAL MATCH (pr:Project)-[:USES]->(s)
+    RETURN s.name AS system,
+           s.criticality AS criticality,
+           collect(DISTINCT upstream.name) AS affectedSystems,
+           collect(DISTINCT {
+             service: upstream.name,
+             hops: length(path),
+             via: [n IN nodes(path) | coalesce(n.name, n.id)]
+           }) AS routes,
+           collect(DISTINCT pr.name) AS affectedProjects,
+           collect(DISTINCT p.name) AS owners
+  `;
+}

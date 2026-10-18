@@ -8,10 +8,11 @@ export type ChatTurn = { role: "user" | "assistant"; content: string };
 
 const MODEL_FALLBACKS = [
   process.env.GEMINI_MODEL,
-  "gemini-2.5-flash",
-  "gemini-2.0-flash",
-  "gemini-flash-latest",
-  "gemini-1.5-flash",
+  "gemini-3.5-flash-lite",
+  "gemini-3.5-flash",
+  "gemini-3.1-flash-lite",
+  "gemini-3.8-flash",
+  "gemini-3.7-flash",
 ].filter(Boolean) as string[];
 
 function extractFunctionCalls(response: {
@@ -141,13 +142,16 @@ export async function runAgent(args: {
       String(error).includes("FalkorDBConnectionError") ||
       String(error).includes("ECONNREFUSED")
     ) {
+      const endpoint = process.env.FALKORDB_URL
+        ? "FalkorDB Cloud"
+        : `${process.env.FALKORDB_HOST ?? "127.0.0.1"}:${process.env.FALKORDB_PORT ?? 6379}`;
       return {
         text:
           `### 🔴 FalkorDB Disconnected: Live Graph Context Required\n\n` +
-          `Unable to reach FalkorDB on \`127.0.0.1:6379\`.\n\n` +
+          `Unable to reach FalkorDB on \`${endpoint}\`.\n\n` +
           `> *"Build an agent whose context lives in a graph, and make the graph shape what the agent does rather than sit beside it."* — WeMakeDevs & FalkorDB Guide\n\n` +
           `The agent cannot reason without its live graph database. Mock answering is disallowed to ensure all answers are 100% graph-grounded.\n\n` +
-          `**Start FalkorDB to enable graph reasoning:**\n` +
+          `**Start FalkorDB or verify credentials:**\n` +
           `\`\`\`bash\n` +
           `docker compose up -d\n` +
           `# or: docker run -p 6379:6379 falkordb/falkordb\n` +

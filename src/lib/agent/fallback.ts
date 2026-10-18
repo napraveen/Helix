@@ -105,26 +105,6 @@ function route(message: string): Route {
     };
   }
 
-  if (q.includes("copperline") || q.includes("billing") || q.includes("freeze") || q.includes("invoice") || q.includes("adr-014") || q.includes("why did we")) {
-    return {
-      tools: [
-        { name: "trace_decision", args: { q: "Copperline" } },
-        { name: "who_owns", args: { q: "billing" } },
-        { name: "who_knows", args: { topic: "billing" } },
-      ],
-      replyHint: "decision-trace",
-    };
-  }
-  if (q.includes("vision") || q.includes("calibration") || q.includes("lisbon") || q.includes("who knows")) {
-    const topic = q.includes("ota") ? "OTA" : q.includes("fleet") ? "fleet orchestration" : q.includes("billing") ? "billing" : "vision pipeline";
-    return {
-      tools: [
-        { name: "who_knows", args: { topic } },
-        { name: "who_owns", args: { q: topic } },
-      ],
-      replyHint: "expertise",
-    };
-  }
   if (q.includes("workflow-orchestrator") || q.includes("fleet-orchestrator") || q.includes("goes down") || q.includes("blast") || q.includes("what breaks") || q.includes("payment-v3")) {
     let target = "workflow-orchestrator";
     if (q.includes("workflow-orchestrator")) target = "workflow-orchestrator";
@@ -146,6 +126,27 @@ function route(message: string): Route {
     return {
       tools: [{ name: "blast_radius", args: { q: target, depth } }],
       replyHint: "blast",
+    };
+  }
+
+  if (q.includes("copperline") || q.includes("billing") || q.includes("freeze") || q.includes("invoice") || q.includes("adr-014") || q.includes("why did we")) {
+    return {
+      tools: [
+        { name: "trace_decision", args: { q: "Copperline" } },
+        { name: "who_owns", args: { q: "billing" } },
+        { name: "who_knows", args: { topic: "billing" } },
+      ],
+      replyHint: "decision-trace",
+    };
+  }
+  if (q.includes("vision") || q.includes("calibration") || q.includes("lisbon") || q.includes("who knows")) {
+    const topic = q.includes("ota") ? "OTA" : q.includes("fleet") ? "fleet orchestration" : q.includes("billing") ? "billing" : "vision pipeline";
+    return {
+      tools: [
+        { name: "who_knows", args: { topic } },
+        { name: "who_owns", args: { q: topic } },
+      ],
+      replyHint: "expertise",
     };
   }
   if (q.includes("stale") || q.includes("outdated") || q.includes("wiki") || q.includes("fresh")) {
@@ -326,13 +327,16 @@ export async function graphOnlyAnswer(message: string, sessionId: string) {
       String(err).includes("FalkorDBConnectionError") ||
       String(err).includes("ECONNREFUSED")
     ) {
+      const endpoint = process.env.FALKORDB_URL
+        ? "FalkorDB Cloud"
+        : `${process.env.FALKORDB_HOST ?? "127.0.0.1"}:${process.env.FALKORDB_PORT ?? 6379}`;
       return {
         text:
           `### 🔴 FalkorDB Disconnected: Graph Context Required\n\n` +
-          `The agent cannot answer this question because it is not connected to FalkorDB on \`127.0.0.1:6379\`.\n\n` +
+          `The agent cannot answer this question because it is not connected to FalkorDB on \`${endpoint}\`.\n\n` +
           `> *"In all three tracks the judging comes back to whether the graph is doing work the agent could not do without it. A project where the graph is a store the agent occasionally reads from is a project that any database would have served, and that reads immediately."* — WeMakeDevs Guide\n\n` +
           `Mock offline responses are rejected to ensure genuine graph reasoning over live topology.\n\n` +
-          `**Start your FalkorDB instance:**\n` +
+          `**Start your FalkorDB instance or verify credentials:**\n` +
           `\`\`\`bash\n` +
           `docker compose up -d\n` +
           `# or: docker run -p 6379:6379 falkordb/falkordb\n` +
@@ -341,7 +345,7 @@ export async function graphOnlyAnswer(message: string, sessionId: string) {
         model: "falkordb-disconnected",
         specialists: ["Helix"],
         outcome: "unknown_entity" as AnswerOutcomeShape,
-        refusalReason: "FalkorDB is unreachable. Graph context unavailable.",
+        refusalReason: `FalkorDB is unreachable at ${endpoint}. Graph context unavailable.`,
       };
     }
     throw err;

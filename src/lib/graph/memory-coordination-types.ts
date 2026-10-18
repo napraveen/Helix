@@ -20,16 +20,29 @@ export type CognitiveMemory = {
 export type BlackboardTask = {
   id: string;
   title: string;
-  status: "INITIATED" | "CLAIMED" | "IN_PROGRESS" | "COMPLETED";
-  initiatorAgent: string;
-  currentAgent: string;
-  handoffCount: number;
-  payload: Record<string, unknown>;
-  history: Array<{
+  status: "INITIATED" | "CLAIMED" | "IN_PROGRESS" | "COMPLETED" | "PENDING" | "DEAD_LETTER";
+  initiatorAgent?: string;
+  currentAgent?: string;
+  handoffCount?: number;
+  payload?: Record<string, unknown>;
+  history?: Array<{
     agent: string;
     action: string;
     timestamp: string;
     cypherMutation?: string;
+  }>;
+  version?: number;
+  leaseOwner?: string;
+  leaseExpiresAt?: number;
+  retryCount?: number;
+  deadLetterReason?: string;
+  handoffLedger?: Array<{
+    step: number;
+    fromAgent: string;
+    toAgent: string;
+    action: string;
+    payload: Record<string, unknown>;
+    timestamp: string;
   }>;
 };
 
@@ -50,6 +63,11 @@ export type ConcurrentStressResult = {
     opsCompleted: number;
     avgLatencyMs: number;
   }>;
+  timestamp?: string;
+  targetInstance?: string;
+  breakingPointConcurrency?: number;
+  breakingPointReason?: string;
+  levelsTested?: Array<unknown>;
 };
 
 export const INITIAL_COGNITIVE_MEMORIES: CognitiveMemory[] = [

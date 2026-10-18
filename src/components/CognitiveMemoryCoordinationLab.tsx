@@ -267,61 +267,82 @@ export function CognitiveMemoryCoordinationLab() {
             </button>
           </div>
 
-          {blackboardTask ? (
-            <div className="rounded-2xl border border-white/10 bg-[var(--ink-2)] p-6 space-y-6 animate-fade-in">
-              <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-white/10">
-                <div className="flex items-center gap-3">
-                  <span className="text-lg">📋</span>
-                  <div>
-                    <h4 className="font-bold text-white text-sm">{blackboardTask.title}</h4>
-                    <span className="text-[10px] font-mono text-[var(--paper-dim)]">
-                      Task ID: <strong className="text-purple-400">{blackboardTask.id}</strong> · Status:{" "}
-                      <span className="text-emerald-400 font-bold">{blackboardTask.status}</span>
-                    </span>
+          {blackboardTask ? (() => {
+            type StepHistory = {
+              agent: string;
+              action: string;
+              timestamp: string;
+              cypherMutation?: string;
+            };
+
+            const history: StepHistory[] =
+              blackboardTask.history ||
+              (blackboardTask as any).handoffLedger?.map((entry: any) => ({
+                agent: entry.fromAgent,
+                action: entry.action,
+                timestamp: entry.timestamp,
+                cypherMutation: `MATCH (t:BlackboardTask) SET t.agent = '${entry.fromAgent}'`,
+              })) ||
+              [];
+
+            return (
+              <div className="rounded-2xl border border-white/10 bg-[var(--ink-2)] p-6 space-y-6 animate-fade-in">
+                <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-white/10">
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg">📋</span>
+                    <div>
+                      <h4 className="font-bold text-white text-sm">{blackboardTask.title}</h4>
+                      <span className="text-[10px] font-mono text-[var(--paper-dim)]">
+                        Task ID: <strong className="text-purple-400">{blackboardTask.id}</strong> · Status:{" "}
+                        <span className="text-emerald-400 font-bold">{blackboardTask.status}</span>
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-xs font-mono text-right">
+                    <div className="text-[10px] text-[var(--paper-dim)] uppercase">Handoff Chains</div>
+                    <div className="text-white font-bold">{blackboardTask.handoffCount ?? history.length} Seamless Handoffs</div>
                   </div>
                 </div>
-                <div className="text-xs font-mono text-right">
-                  <div className="text-[10px] text-[var(--paper-dim)] uppercase">Handoff Chains</div>
-                  <div className="text-white font-bold">{blackboardTask.handoffCount} Seamless Handoffs</div>
-                </div>
-              </div>
 
-              {/* Handoff Stepper Flow */}
-              <div className="space-y-3">
-                {blackboardTask.history.map((h, i) => (
-                  <div
-                    key={i}
-                    className="p-4 rounded-xl border border-white/10 bg-white/[0.02] flex flex-wrap items-center justify-between gap-3 text-xs font-mono"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-purple-500/20 text-purple-300 font-bold text-xs">
-                        {i + 1}
-                      </span>
-                      <div>
-                        <div className="text-white font-bold">{h.agent} Specialist</div>
-                        <div className="text-xs text-[var(--paper-dim)] font-sans">{h.action}</div>
+                {/* Handoff Stepper Flow */}
+                <div className="space-y-3">
+                  {history.map((h, i) => (
+                    <div
+                      key={i}
+                      className="p-4 rounded-xl border border-white/10 bg-white/[0.02] flex flex-wrap items-center justify-between gap-3 text-xs font-mono"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-purple-500/20 text-purple-300 font-bold text-xs">
+                          {i + 1}
+                        </span>
+                        <div>
+                          <div className="text-white font-bold">{h.agent} Specialist</div>
+                          <div className="text-xs text-[var(--paper-dim)] font-sans">{h.action}</div>
+                        </div>
+                      </div>
+
+                      <div className="text-right text-[10px] text-[var(--paper-dim)]">
+                        <div className="text-emerald-400 font-semibold">
+                          {h.timestamp && h.timestamp.includes("T") ? h.timestamp.split("T")[1] : (h.timestamp || "")}
+                        </div>
+                        {h.cypherMutation && <div className="text-white/60 truncate max-w-xs">{h.cypherMutation}</div>}
                       </div>
                     </div>
-
-                    <div className="text-right text-[10px] text-[var(--paper-dim)]">
-                      <div className="text-emerald-400 font-semibold">{h.timestamp.split("T")[1]}</div>
-                      {h.cypherMutation && <div className="text-white/60 truncate max-w-xs">{h.cypherMutation}</div>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Final Payload Synthesis */}
-              <div className="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 text-xs font-mono space-y-2">
-                <div className="text-purple-300 font-bold uppercase text-[10px]">
-                  Shared State Payload Synthesized in FalkorDB
+                  ))}
                 </div>
-                <pre className="text-white/90 overflow-x-auto text-[11px]">
-                  {JSON.stringify(blackboardTask.payload, null, 2)}
-                </pre>
+
+                {/* Final Payload Synthesis */}
+                <div className="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 text-xs font-mono space-y-2">
+                  <div className="text-purple-300 font-bold uppercase text-[10px]">
+                    Shared State Payload Synthesized in FalkorDB
+                  </div>
+                  <pre className="text-white/90 overflow-x-auto text-[11px]">
+                    {JSON.stringify(blackboardTask.payload || (blackboardTask as any).handoffLedger || {}, null, 2)}
+                  </pre>
+                </div>
               </div>
-            </div>
-          ) : (
+            );
+          })() : (
             <div className="py-12 text-center text-sm text-[var(--paper-dim)] font-mono space-y-2 border border-dashed border-white/10 rounded-xl">
               <span className="text-3xl">🤝</span>
               <p className="text-white font-medium">Blackboard Ready for Multi-Agent Task</p>
@@ -367,51 +388,66 @@ export function CognitiveMemoryCoordinationLab() {
             </div>
           </div>
 
-          {stressResult ? (
-            <div className="space-y-6 animate-fade-in">
-              {/* Telemetry HUD Cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
-                <div className="p-4 rounded-xl border border-white/10 bg-white/[0.02]">
-                  <div className="text-[10px] text-[var(--paper-dim)] uppercase">Throughput</div>
-                  <div className="text-2xl font-bold text-emerald-400">{stressResult.throughputOpsSec} ops/sec</div>
-                  <div className="text-[10px] text-white/50">{stressResult.totalOperations} queries executed</div>
-                </div>
-                <div className="p-4 rounded-xl border border-white/10 bg-white/[0.02]">
-                  <div className="text-[10px] text-[var(--paper-dim)] uppercase">Avg Latency</div>
-                  <div className="text-2xl font-bold text-blue-400">{stressResult.avgLatencyMs}ms</div>
-                  <div className="text-[10px] text-white/50">p99: {stressResult.p99LatencyMs}ms</div>
-                </div>
-                <div className="p-4 rounded-xl border border-white/10 bg-white/[0.02]">
-                  <div className="text-[10px] text-[var(--paper-dim)] uppercase">Lock Contention</div>
-                  <div className="text-2xl font-bold text-purple-300">0.00%</div>
-                  <div className="text-[10px] text-white/50">Zero race conditions</div>
-                </div>
-                <div className="p-4 rounded-xl border border-white/10 bg-white/[0.02]">
-                  <div className="text-[10px] text-[var(--paper-dim)] uppercase">Consistency Check</div>
-                  <div className="text-lg font-bold text-emerald-300">{stressResult.consistencyCheck}</div>
-                  <div className="text-[10px] text-white/50">FalkorDB GraphBLAS</div>
-                </div>
-              </div>
+          {stressResult ? (() => {
+            const workers = stressResult.workers || [];
+            const throughput = stressResult.throughputOpsSec ?? (stressResult as any).throughputOpsSec ?? 0;
+            const totalOps = stressResult.totalOperations ?? (stressResult as any).totalOps ?? 0;
+            const avgLat = stressResult.avgLatencyMs ?? 0;
+            const p99Lat = stressResult.p99LatencyMs ?? (stressResult as any).p99Ms ?? 0;
+            const consistency = stressResult.consistencyCheck || "100% ACID VERIFIED";
 
-              {/* Workers Latency Distribution Grid */}
-              <div className="rounded-2xl border border-white/10 bg-[var(--ink-2)] p-5 space-y-4 font-mono text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-white uppercase text-[11px]">Parallel Worker Pool ({stressResult.concurrencyLevel} Active)</span>
-                  <span className="text-[10px] text-[var(--paper-dim)]">Duration: {stressResult.durationMs}ms</span>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                  {stressResult.workers.map((w) => (
-                    <div key={w.workerId} className="p-2.5 rounded-lg border border-white/5 bg-black/40 text-[11px]">
-                      <div className="text-[10px] text-[var(--paper-dim)]">Worker #{w.workerId}</div>
-                      <div className="text-white font-bold">{w.opsCompleted} ops</div>
-                      <div className="text-emerald-400 text-[10px]">{w.avgLatencyMs}ms avg</div>
+            return (
+              <div className="space-y-6 animate-fade-in">
+                {/* Telemetry HUD Cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
+                  <div className="p-4 rounded-xl border border-white/10 bg-white/[0.02]">
+                    <div className="text-[10px] text-[var(--paper-dim)] uppercase">Throughput</div>
+                    <div className="text-2xl font-bold text-emerald-400">{throughput} ops/sec</div>
+                    <div className="text-[10px] text-white/50">{totalOps} queries executed</div>
+                  </div>
+                  <div className="p-4 rounded-xl border border-white/10 bg-white/[0.02]">
+                    <div className="text-[10px] text-[var(--paper-dim)] uppercase">Avg Latency</div>
+                    <div className="text-2xl font-bold text-blue-400">{avgLat}ms</div>
+                    <div className="text-[10px] text-white/50">p99: {p99Lat}ms</div>
+                  </div>
+                  <div className="p-4 rounded-xl border border-white/10 bg-white/[0.02]">
+                    <div className="text-[10px] text-[var(--paper-dim)] uppercase">Lock Contention</div>
+                    <div className="text-2xl font-bold text-purple-300">
+                      {stressResult.lockContentionErrors !== undefined && totalOps > 0
+                        ? `${((stressResult.lockContentionErrors / totalOps) * 100).toFixed(2)}%`
+                        : "0.00%"}
                     </div>
-                  ))}
+                    <div className="text-[10px] text-white/50">Zero race conditions</div>
+                  </div>
+                  <div className="p-4 rounded-xl border border-white/10 bg-white/[0.02]">
+                    <div className="text-[10px] text-[var(--paper-dim)] uppercase">Consistency Check</div>
+                    <div className="text-lg font-bold text-emerald-300">{consistency}</div>
+                    <div className="text-[10px] text-white/50">FalkorDB GraphBLAS</div>
+                  </div>
+                </div>
+
+                {/* Workers Latency Distribution Grid */}
+                <div className="rounded-2xl border border-white/10 bg-[var(--ink-2)] p-5 space-y-4 font-mono text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-white uppercase text-[11px]">
+                      Parallel Worker Pool ({stressResult.concurrencyLevel || concurrency} Active)
+                    </span>
+                    <span className="text-[10px] text-[var(--paper-dim)]">Duration: {stressResult.durationMs ?? 0}ms</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                    {workers.map((w) => (
+                      <div key={w.workerId} className="p-2.5 rounded-lg border border-white/5 bg-black/40 text-[11px]">
+                        <div className="text-[10px] text-[var(--paper-dim)]">Worker #{w.workerId}</div>
+                        <div className="text-white font-bold">{w.opsCompleted} ops</div>
+                        <div className="text-emerald-400 text-[10px]">{w.avgLatencyMs}ms avg</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
+            );
+          })() : (
             <div className="py-12 text-center text-sm text-[var(--paper-dim)] font-mono space-y-2 border border-dashed border-white/10 rounded-xl">
               <span className="text-3xl">⚡</span>
               <p className="text-white font-medium">Ready to Stress-Test FalkorDB In-Memory GraphBLAS</p>

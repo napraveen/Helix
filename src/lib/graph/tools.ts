@@ -1,6 +1,6 @@
 import { nanoid } from "nanoid";
 import { compactNode, runCypher, type QueryResult } from "../falkor/run";
-import { CYPHER } from "./cypher";
+import { CYPHER, blastRadiusWithDepthCypher } from "./cypher";
 import { resolveEntityInGraph, type AnswerOutcomeShape } from "./grounding-verifier";
 
 export type ToolTrace = {
@@ -138,12 +138,13 @@ export async function blastRadius(q: string, depth = 4): Promise<ToolOutput> {
   }
 
   const targetName = resolved.canonicalName ?? q;
+  const cypherQuery = blastRadiusWithDepthCypher(boundedDepth);
   const { result, trace } = await traced(
     "blast_radius",
     "Pulse",
-    CYPHER.blastRadiusWithDepth,
-    { name: targetName, depth: boundedDepth },
-    () => runCypher(CYPHER.blastRadiusWithDepth, { name: targetName, depth: boundedDepth }, true),
+    cypherQuery,
+    { name: targetName },
+    () => runCypher(cypherQuery, { name: targetName }, true),
     `Transitive DEPENDS_ON*1..${boundedDepth} traversal into ${targetName}`
   );
 
@@ -153,7 +154,8 @@ export async function blastRadius(q: string, depth = 4): Promise<ToolOutput> {
 
   const hasDeps = affected.length > 0;
   const outcome: AnswerOutcomeShape = hasDeps ? "answered_with_path" : "not_in_graph";
-  const longest = [...routes].sort((a, b) => b.hops - a.hops)[0];
+  const validRoutes = routes.filter((r) => r && r.service && Array.isArray(r.via));
+  const longest = [...validRoutes].sort((a, b) => b.hops - a.hops)[0];
   const hopsPath = longest ? longest.via : [targetName];
 
   return {
